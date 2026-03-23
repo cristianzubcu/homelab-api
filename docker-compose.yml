@@ -1,7 +1,3 @@
-networks:
-  homelab:
-    external: true   # created by the homelab stack; run that first
-
 services:
   homelab-api:
     build: .
@@ -11,6 +7,4 @@ services:
     env_file: .env
     volumes:
       - /opt/homelab-data/media:/data:ro
-    networks:
-      - homelab
     restart: unless-stopped
