@@ -1,9 +1,16 @@
+networks:
+  homelab:
+    external: true   # created by the homelab stack; run that first
+
 services:
   homelab-api:
     build: .
+    container_name: homelab-api
     ports:
       - "5000:5000"
     env_file: .env
     volumes:
       - /opt/homelab-data/media:/data:ro
+    networks:
+      - homelab
     restart: unless-stopped
