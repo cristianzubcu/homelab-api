@@ -2,16 +2,11 @@
 
 Mobile-friendly Flask dashboard for managing a self-hosted media server stack. Wraps Jellyfin, Radarr, Sonarr, qBittorrent, and monitoring services behind a clean web UI.
 
-## Features
+## Main Features (What I use the most)
 
 - **Health check** — live up/down status for all services
 - **VPN status** — confirm WireGuard/Mullvad is connected
-- **Storage** — disk usage of the media volume
 - **Library scan** — trigger Jellyfin to scan for new media
-- **Recent additions** — last 10 items added to Jellyfin
-- **Active torrents** — live list with progress bars and speeds
-- **Cleanup** — remove completed torrents from qBittorrent
-- **Search** — look up movies (Radarr) or TV shows (Sonarr)
 
 ## Setup
 
@@ -20,7 +15,7 @@ git clone https://github.com/cristianzubcu/homelab-api
 cd homelab-api
 
 cp .env.example .env
-# Fill in your API keys and service URLs
+# Fill in your secrets in here (API keys, etc.)
 nano .env
 
 docker compose up -d
@@ -58,15 +53,12 @@ Open `http://your-server:5000`
 | GET | `/api/radarr/search?q=term` | Search movies |
 | GET | `/api/sonarr/search?q=term` | Search TV shows |
 
-## Screenshots
-
-<!-- Add screenshots here -->
 
 ## Development
 
 ```bash
 pip install flask requests
-cp .env.example .env  # fill in values
+cp .env.example .env  # fill in required values
 python app.py
 ```
 
