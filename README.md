@@ -1,6 +1,6 @@
 # homelab-api
 
-Mobile-friendly Flask dashboard for managing a self-hosted media server stack. Wraps Jellyfin, Radarr, Sonarr, qBittorrent, and monitoring services behind a clean web UI.
+Flask dashboard for managing self-hosted media server stack. 
 
 ## Main Features (What I use the most)
 
