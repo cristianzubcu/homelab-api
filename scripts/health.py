@@ -1,14 +1,14 @@
 import requests
 
 SERVICES = {
-    "jellyfin":    "http://jellyfin:8096",
-    "radarr":      "http://radarr:7878",
-    "sonarr":      "http://sonarr:8989",
-    "prowlarr":    "http://prowlarr:9696",
-    "qbittorrent": "http://wireguard:8080",
-    "bazarr":      "http://bazarr:6767",
-    "grafana":     "http://grafana:3001",
-    "prometheus":  "http://prometheus:9090",
+    "jellyfin":    "http://host.docker.internal:8096",
+    "radarr":      "http://host.docker.internal:7878",
+    "sonarr":      "http://host.docker.internal:8989",
+    "prowlarr":    "http://host.docker.internal:9696",
+    "qbittorrent": "http://host.docker.internal:8080",
+    "bazarr":      "http://host.docker.internal:6767",
+    "grafana":     "http://host.docker.internal:3001",
+    "prometheus":  "http://host.docker.internal:9090",
 }
 
 
