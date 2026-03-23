@@ -1,6 +1,6 @@
 # homelab-api
 
-Flask dashboard for managing self-hosted media server stack. 
+Flask + Tabler dashboard for managing self-hosted media server stack. 
 
 ## Main Features (What I use the most)
 
