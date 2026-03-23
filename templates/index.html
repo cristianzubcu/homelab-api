@@ -1,505 +1,484 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Homelab Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:      #0f1117;
-      --surface: #1a1d27;
-      --border:  #2a2d3e;
-      --accent:  #6c8ef7;
-      --green:   #4caf82;
-      --red:     #e05c5c;
-      --text:    #d0d4e8;
-      --muted:   #6b7094;
-      --radius:  10px;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 15px;
-      line-height: 1.5;
-      padding: 16px;
-      max-width: 640px;
-      margin: 0 auto;
-    }
-
-    h1 { font-size: 1.3rem; font-weight: 600; margin-bottom: 20px; color: #fff; }
-    h2 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase;
-         letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-
-    button {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 14px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-    button:hover  { opacity: 0.85; }
-    button:active { opacity: 0.7; }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    button.danger { background: var(--red); }
-
-    .result {
-      margin-top: 10px;
-      font-size: 0.82rem;
-      color: var(--muted);
-      min-height: 18px;
-    }
-
-    /* Health grid */
-    .health-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .health-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.82rem;
-    }
-    .dot {
+    .status-dot {
+      display: inline-block;
       width: 8px; height: 8px;
       border-radius: 50%;
-      flex-shrink: 0;
-      background: var(--muted);
+      margin-right: 6px;
     }
-    .dot.up   { background: var(--green); }
-    .dot.down { background: var(--red); }
-
-    /* VPN badge */
-    .badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 0.78rem;
-      font-weight: 600;
-    }
-    .badge.connected    { background: #1a3a2a; color: var(--green); }
-    .badge.disconnected { background: #3a1a1a; color: var(--red); }
-
-    /* Storage bar */
-    .bar-track {
-      background: var(--border);
-      border-radius: 4px;
-      height: 8px;
-      margin: 8px 0 4px;
+    .torrent-name {
+      white-space: nowrap;
       overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
-    .bar-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 4px;
-      transition: width 0.4s ease;
-    }
-    .bar-label { font-size: 0.78rem; color: var(--muted); }
-
-    /* Recent items */
-    .media-list { list-style: none; margin-top: 8px; }
-    .media-list li {
-      padding: 6px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.83rem;
-    }
-    .media-list li:last-child { border-bottom: none; }
-    .media-list .year { color: var(--muted); margin-left: 6px; }
-
-    /* Torrent list */
-    .torrent-list { list-style: none; margin-top: 8px; }
-    .torrent-list li {
-      padding: 7px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.82rem;
-    }
-    .torrent-list li:last-child { border-bottom: none; }
-    .torrent-progress {
-      background: var(--border);
-      border-radius: 3px;
-      height: 4px;
-      margin-top: 4px;
-    }
-    .torrent-progress-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 3px;
-    }
-    .torrent-meta { color: var(--muted); font-size: 0.78rem; margin-top: 2px; }
-
-    /* Search */
-    .search-row { display: flex; gap: 8px; margin-bottom: 10px; }
-    .search-row input[type="text"] {
-      flex: 1;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      padding: 8px 12px;
-      font-size: 0.85rem;
-      outline: none;
-    }
-    .search-row input[type="text"]:focus { border-color: var(--accent); }
-
-    .radio-group { display: flex; gap: 16px; margin-bottom: 10px; font-size: 0.85rem; }
-    .radio-group label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-
-    .search-results { list-style: none; margin-top: 10px; }
-    .search-results li {
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.83rem;
-    }
-    .search-results li:last-child { border-bottom: none; }
-    .search-results .overview {
-      color: var(--muted);
-      font-size: 0.78rem;
-      margin-top: 2px;
+    .search-result-overview {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      font-size: 0.8rem;
+      opacity: 0.6;
     }
-
-    /* Speed display */
-    .speed-display {
-      display: flex;
-      gap: 24px;
-      margin-top: 8px;
-    }
-    .speed-item { font-size: 0.82rem; }
-    .speed-item .label { color: var(--muted); font-size: 0.75rem; }
-    .speed-item .value { font-size: 1.1rem; font-weight: 600; color: #fff; }
-
-    .spinner {
-      display: inline-block;
-      width: 12px; height: 12px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      margin-right: 6px;
-      vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
-<body>
+<body class="antialiased">
+  <div class="wrapper">
 
-<h1>Homelab Dashboard</h1>
+    <!-- ── Navbar ──────────────────────────────────────────────────────── -->
+    <header class="navbar navbar-expand-md d-print-none">
+      <div class="container-xl">
+        <a href="/" class="navbar-brand">
+          <span class="navbar-brand-text fw-bold">Homelab Dashboard</span>
+        </a>
+      </div>
+    </header>
 
-<!-- ── System ──────────────────────────────────────────────────────────── -->
-<div class="card">
-  <h2>System</h2>
+    <!-- ── Page ───────────────────────────────────────────────────────── -->
+    <div class="page-wrapper">
+      <div class="page-body">
+        <div class="container-xl">
+          <div class="row g-3">
 
-  <div class="row">
-    <button onclick="loadHealth(this)">Check Health</button>
-    <button onclick="loadVPN(this)">Check VPN</button>
-    <button onclick="loadStorage(this)">Storage</button>
-  </div>
+            <!-- ── System ─────────────────────────────────────────────── -->
+            <div class="col-12 col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">System</h3>
+                </div>
+                <div class="card-body">
 
-  <div id="health-grid" class="health-grid"></div>
+                  <!-- Health -->
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="text-secondary small text-uppercase fw-bold">Services</span>
+                      <button class="btn btn-sm btn-primary" onclick="loadHealth(this)">
+                        Check Health
+                      </button>
+                    </div>
+                    <div id="health-grid" class="row g-2"></div>
+                  </div>
 
-  <div id="vpn-result" class="result"></div>
+                  <hr class="my-3" />
 
-  <div id="storage-result"></div>
-</div>
+                  <!-- VPN -->
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="text-secondary small text-uppercase fw-bold">VPN</span>
+                      <button class="btn btn-sm btn-primary" onclick="loadVPN(this)">
+                        Check VPN
+                      </button>
+                    </div>
+                    <div id="vpn-result"></div>
+                  </div>
 
-<!-- ── Media ───────────────────────────────────────────────────────────── -->
-<div class="card">
-  <h2>Media</h2>
+                  <hr class="my-3" />
 
-  <div class="row">
-    <button onclick="scanLibraries(this)">Scan Libraries</button>
-    <button onclick="loadRecent(this)">Recent Additions</button>
-  </div>
+                  <!-- Storage -->
+                  <div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="text-secondary small text-uppercase fw-bold">Storage</span>
+                      <button class="btn btn-sm btn-primary" onclick="loadStorage(this)">
+                        Refresh
+                      </button>
+                    </div>
+                    <div id="storage-result"></div>
+                  </div>
 
-  <div id="scan-result" class="result"></div>
-  <ul id="recent-list" class="media-list"></ul>
-</div>
-
-<!-- ── Downloads ───────────────────────────────────────────────────────── -->
-<div class="card">
-  <h2>Downloads</h2>
-
-  <div class="row">
-    <button onclick="loadDownloads(this)">Active Torrents</button>
-    <button onclick="loadSpeed(this)">Speed</button>
-    <button class="danger" onclick="cleanupDownloads(this)">Remove Completed</button>
-  </div>
-
-  <div id="speed-display" class="speed-display"></div>
-  <div id="cleanup-result" class="result"></div>
-  <ul id="torrent-list" class="torrent-list"></ul>
-</div>
-
-<!-- ── Search ──────────────────────────────────────────────────────────── -->
-<div class="card">
-  <h2>Search</h2>
-
-  <div class="radio-group">
-    <label><input type="radio" name="search-type" value="movies" checked /> Movies</label>
-    <label><input type="radio" name="search-type" value="shows" /> TV Shows</label>
-  </div>
-
-  <div class="search-row">
-    <input type="text" id="search-input" placeholder="Title…" onkeydown="if(event.key==='Enter') doSearch()" />
-    <button onclick="doSearch()">Search</button>
-  </div>
-
-  <div id="search-result" class="result"></div>
-  <ul id="search-results" class="search-results"></ul>
-</div>
-
-<script>
-  // ── Helpers ──────────────────────────────────────────────────────────────
-
-  function busy(btn) {
-    btn.disabled = true;
-    btn._label = btn.textContent;
-    btn.innerHTML = '<span class="spinner"></span>' + btn._label;
-  }
-
-  function done(btn) {
-    btn.disabled = false;
-    btn.textContent = btn._label;
-  }
-
-  async function api(path, method = "GET") {
-    const resp = await fetch(path, { method });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    return resp.json();
-  }
-
-  function setResult(id, msg, isError = false) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.color = isError ? "var(--red)" : "var(--muted)";
-    el.textContent = msg;
-  }
-
-  // ── Health ───────────────────────────────────────────────────────────────
-
-  async function loadHealth(btn) {
-    busy(btn);
-    const grid = document.getElementById("health-grid");
-    grid.innerHTML = "";
-    try {
-      const data = await api("/api/health");
-      Object.entries(data).forEach(([name, status]) => {
-        const item = document.createElement("div");
-        item.className = "health-item";
-        item.innerHTML = `<span class="dot ${status}"></span><span>${name}</span>`;
-        grid.appendChild(item);
-      });
-    } catch (e) {
-      grid.textContent = "Failed to load health";
-    }
-    done(btn);
-  }
-
-  // ── VPN ──────────────────────────────────────────────────────────────────
-
-  async function loadVPN(btn) {
-    busy(btn);
-    setResult("vpn-result", "");
-    try {
-      const data = await api("/api/vpn");
-      const cls = data.connected ? "connected" : "disconnected";
-      const label = data.connected ? "VPN Connected" : "VPN Disconnected";
-      document.getElementById("vpn-result").innerHTML =
-        `<span class="badge ${cls}">${label}</span>
-         <span style="margin-left:8px;font-size:.8rem;color:var(--muted)">${data.message}</span>`;
-    } catch (e) {
-      setResult("vpn-result", "VPN check failed", true);
-    }
-    done(btn);
-  }
-
-  // ── Storage ──────────────────────────────────────────────────────────────
-
-  async function loadStorage(btn) {
-    busy(btn);
-    const el = document.getElementById("storage-result");
-    el.innerHTML = "";
-    try {
-      const d = await api("/api/storage");
-      if (d.error) { el.innerHTML = `<div class="result" style="color:var(--red)">${d.error}</div>`; }
-      else {
-        el.innerHTML = `
-          <div class="bar-track"><div class="bar-fill" style="width:${d.percent_used}%"></div></div>
-          <div class="bar-label">${d.used} used of ${d.total} &nbsp;·&nbsp; ${d.free} free &nbsp;·&nbsp; ${d.percent_used}%</div>`;
-      }
-    } catch (e) {
-      el.innerHTML = '<div class="result" style="color:var(--red)">Failed to load storage</div>';
-    }
-    done(btn);
-  }
-
-  // ── Jellyfin ─────────────────────────────────────────────────────────────
-
-  async function scanLibraries(btn) {
-    busy(btn);
-    setResult("scan-result", "");
-    try {
-      const data = await api("/api/jellyfin/scan", "POST");
-      setResult("scan-result", data.status || data.error || JSON.stringify(data), !!data.error);
-    } catch (e) {
-      setResult("scan-result", "Scan failed: " + e.message, true);
-    }
-    done(btn);
-  }
-
-  async function loadRecent(btn) {
-    busy(btn);
-    const list = document.getElementById("recent-list");
-    list.innerHTML = "";
-    try {
-      const data = await api("/api/jellyfin/recent");
-      if (data.error) { list.innerHTML = `<li style="color:var(--red)">${data.error}</li>`; }
-      else if (!data.length) { list.innerHTML = '<li>No recent items</li>'; }
-      else {
-        data.forEach(item => {
-          const li = document.createElement("li");
-          const year = item.ProductionYear ? `<span class="year">${item.ProductionYear}</span>` : "";
-          li.innerHTML = `${item.Name || "Unknown"}${year}`;
-          list.appendChild(li);
-        });
-      }
-    } catch (e) {
-      list.innerHTML = `<li style="color:var(--red)">Failed: ${e.message}</li>`;
-    }
-    done(btn);
-  }
-
-  // ── Downloads ────────────────────────────────────────────────────────────
-
-  async function loadSpeed(btn) {
-    busy(btn);
-    const el = document.getElementById("speed-display");
-    el.innerHTML = "";
-    try {
-      const d = await api("/api/downloads/speed");
-      if (d.error) { el.innerHTML = `<span style="color:var(--red)">${d.error}</span>`; }
-      else {
-        el.innerHTML = `
-          <div class="speed-item">
-            <div class="label">↓ Download</div>
-            <div class="value">${d.dl_speed_human}</div>
-          </div>
-          <div class="speed-item">
-            <div class="label">↑ Upload</div>
-            <div class="value">${d.up_speed_human}</div>
-          </div>`;
-      }
-    } catch (e) {
-      el.innerHTML = `<span style="color:var(--red)">Failed: ${e.message}</span>`;
-    }
-    done(btn);
-  }
-
-  async function loadDownloads(btn) {
-    busy(btn);
-    const list = document.getElementById("torrent-list");
-    list.innerHTML = "";
-    try {
-      const data = await api("/api/downloads");
-      if (data.error) { list.innerHTML = `<li style="color:var(--red)">${data.error}</li>`; }
-      else if (!data.length) { list.innerHTML = '<li>No active torrents</li>'; }
-      else {
-        data.forEach(t => {
-          const pct = Math.round((t.progress || 0) * 100);
-          const dl = _humanSpeed(t.dlspeed || 0);
-          const li = document.createElement("li");
-          li.innerHTML = `
-            <div>${t.name || "Unknown"}</div>
-            <div class="torrent-progress">
-              <div class="torrent-progress-fill" style="width:${pct}%"></div>
+                </div>
+              </div>
             </div>
-            <div class="torrent-meta">${pct}% &nbsp;·&nbsp; ↓ ${dl} &nbsp;·&nbsp; ${t.state || ""}</div>`;
-          list.appendChild(li);
+
+            <!-- ── Media ──────────────────────────────────────────────── -->
+            <div class="col-12 col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Media</h3>
+                </div>
+                <div class="card-body">
+
+                  <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-primary" onclick="scanLibraries(this)">
+                      Scan Libraries
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadRecent(this)">
+                      Recent Additions
+                    </button>
+                  </div>
+
+                  <div id="scan-result" class="mb-2"></div>
+
+                  <div id="recent-list"></div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Downloads ──────────────────────────────────────────── -->
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Downloads</h3>
+                </div>
+                <div class="card-body">
+
+                  <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button class="btn btn-primary" onclick="loadDownloads(this)">
+                      Active Torrents
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadSpeed(this)">
+                      Speed
+                    </button>
+                    <button class="btn btn-danger" onclick="cleanupDownloads(this)">
+                      Remove Completed
+                    </button>
+                  </div>
+
+                  <div id="speed-display" class="mb-3"></div>
+                  <div id="cleanup-result" class="mb-2"></div>
+                  <div id="torrent-list"></div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Search ─────────────────────────────────────────────── -->
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Search</h3>
+                </div>
+                <div class="card-body">
+
+                  <div class="d-flex gap-3 mb-3">
+                    <label class="form-check">
+                      <input class="form-check-input" type="radio" name="search-type" value="movies" checked />
+                      <span class="form-check-label">Movies</span>
+                    </label>
+                    <label class="form-check">
+                      <input class="form-check-input" type="radio" name="search-type" value="shows" />
+                      <span class="form-check-label">TV Shows</span>
+                    </label>
+                  </div>
+
+                  <div class="input-group mb-3">
+                    <input type="text" id="search-input" class="form-control"
+                           placeholder="Search for a title…"
+                           onkeydown="if(event.key==='Enter') doSearch()" />
+                    <button class="btn btn-primary" onclick="doSearch()">Search</button>
+                  </div>
+
+                  <div id="search-result" class="mb-2"></div>
+                  <div id="search-results"></div>
+
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /.row -->
+        </div><!-- /.container-xl -->
+      </div><!-- /.page-body -->
+
+      <footer class="footer footer-transparent d-print-none">
+        <div class="container-xl">
+          <div class="row text-center">
+            <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+              <small class="text-secondary">homelab-api</small>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div><!-- /.page-wrapper -->
+  </div><!-- /.wrapper -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"></script>
+  <script>
+    // ── Helpers ────────────────────────────────────────────────────────────
+
+    function busy(btn) {
+      btn.disabled = true;
+      btn._label = btn.innerHTML;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${btn._label}`;
+    }
+
+    function done(btn) {
+      btn.disabled = false;
+      btn.innerHTML = btn._label;
+    }
+
+    async function api(path, method = "GET") {
+      const resp = await fetch(path, { method });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      return resp.json();
+    }
+
+    function alert(id, msg, type = "secondary") {
+      document.getElementById(id).innerHTML = msg
+        ? `<div class="alert alert-${type} py-2 mb-0">${msg}</div>`
+        : "";
+    }
+
+    // ── Health ─────────────────────────────────────────────────────────────
+
+    async function loadHealth(btn) {
+      busy(btn);
+      const grid = document.getElementById("health-grid");
+      grid.innerHTML = "";
+      try {
+        const data = await api("/api/health");
+        Object.entries(data).forEach(([name, status]) => {
+          const col = document.createElement("div");
+          col.className = "col-6 col-sm-4 col-md-6 col-lg-3";
+          const color = status === "up" ? "success" : "danger";
+          col.innerHTML = `
+            <div class="d-flex align-items-center">
+              <span class="status-dot bg-${color}"></span>
+              <span class="text-capitalize">${name}</span>
+              <span class="badge bg-${color}-lt ms-auto">${status}</span>
+            </div>`;
+          grid.appendChild(col);
         });
+      } catch (e) {
+        grid.innerHTML = `<div class="col-12"><span class="text-danger">Failed: ${e.message}</span></div>`;
       }
-    } catch (e) {
-      list.innerHTML = `<li style="color:var(--red)">Failed: ${e.message}</li>`;
+      done(btn);
     }
-    done(btn);
-  }
 
-  async function cleanupDownloads(btn) {
-    busy(btn);
-    setResult("cleanup-result", "");
-    try {
-      const data = await api("/api/downloads/cleanup", "POST");
-      if (data.error) setResult("cleanup-result", data.error, true);
-      else setResult("cleanup-result", `Removed ${data.removed} completed torrent(s)`);
-    } catch (e) {
-      setResult("cleanup-result", "Cleanup failed: " + e.message, true);
+    // ── VPN ────────────────────────────────────────────────────────────────
+
+    async function loadVPN(btn) {
+      busy(btn);
+      const el = document.getElementById("vpn-result");
+      el.innerHTML = "";
+      try {
+        const data = await api("/api/vpn");
+        const color = data.connected ? "success" : "danger";
+        const label = data.connected ? "Connected" : "Disconnected";
+        el.innerHTML = `
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-${color}">${label}</span>
+            <span class="text-secondary small">${data.message}</span>
+          </div>`;
+      } catch (e) {
+        el.innerHTML = `<span class="text-danger">Failed: ${e.message}</span>`;
+      }
+      done(btn);
     }
-    done(btn);
-  }
 
-  // ── Search ───────────────────────────────────────────────────────────────
+    // ── Storage ────────────────────────────────────────────────────────────
 
-  async function doSearch() {
-    const term = document.getElementById("search-input").value.trim();
-    if (!term) return;
-    const type = document.querySelector('input[name="search-type"]:checked').value;
-    const endpoint = type === "movies"
-      ? `/api/radarr/search?q=${encodeURIComponent(term)}`
-      : `/api/sonarr/search?q=${encodeURIComponent(term)}`;
-
-    const list = document.getElementById("search-results");
-    list.innerHTML = "";
-    setResult("search-result", "Searching…");
-
-    try {
-      const data = await api(endpoint);
-      setResult("search-result", "");
-      if (data.error) { setResult("search-result", data.error, true); return; }
-      if (!data.length) { setResult("search-result", "No results"); return; }
-      data.slice(0, 15).forEach(item => {
-        const li = document.createElement("li");
-        const year = item.year ? ` (${item.year})` : "";
-        const overview = item.overview
-          ? `<div class="overview">${item.overview}</div>` : "";
-        li.innerHTML = `<strong>${item.title || item.name || "Unknown"}${year}</strong>${overview}`;
-        list.appendChild(li);
-      });
-    } catch (e) {
-      setResult("search-result", "Search failed: " + e.message, true);
+    async function loadStorage(btn) {
+      busy(btn);
+      const el = document.getElementById("storage-result");
+      el.innerHTML = "";
+      try {
+        const d = await api("/api/storage");
+        if (d.error) {
+          el.innerHTML = `<span class="text-danger">${d.error}</span>`;
+        } else {
+          el.innerHTML = `
+            <div class="d-flex justify-content-between mb-1 small">
+              <span>${d.used} used</span>
+              <span class="text-secondary">${d.free} free of ${d.total}</span>
+            </div>
+            <div class="progress mb-1" style="height:6px">
+              <div class="progress-bar" style="width:${d.percent_used}%"></div>
+            </div>
+            <div class="text-secondary small">${d.percent_used}% used</div>`;
+        }
+      } catch (e) {
+        el.innerHTML = `<span class="text-danger">Failed: ${e.message}</span>`;
+      }
+      done(btn);
     }
-  }
 
-  // ── Utils ────────────────────────────────────────────────────────────────
+    // ── Jellyfin ───────────────────────────────────────────────────────────
 
-  function _humanSpeed(bps) {
-    const units = ["B/s", "KB/s", "MB/s", "GB/s"];
-    let i = 0;
-    while (bps >= 1024 && i < units.length - 1) { bps /= 1024; i++; }
-    return `${bps.toFixed(1)} ${units[i]}`;
-  }
-</script>
+    async function scanLibraries(btn) {
+      busy(btn);
+      alert("scan-result", "");
+      try {
+        const data = await api("/api/jellyfin/scan", "POST");
+        alert("scan-result", data.status || data.error, data.error ? "danger" : "success");
+      } catch (e) {
+        alert("scan-result", "Scan failed: " + e.message, "danger");
+      }
+      done(btn);
+    }
+
+    async function loadRecent(btn) {
+      busy(btn);
+      const el = document.getElementById("recent-list");
+      el.innerHTML = "";
+      try {
+        const data = await api("/api/jellyfin/recent");
+        if (data.error) {
+          el.innerHTML = `<span class="text-danger">${data.error}</span>`;
+        } else if (!data.length) {
+          el.innerHTML = `<span class="text-secondary">No recent items</span>`;
+        } else {
+          const rows = data.map(item => `
+            <tr>
+              <td>${item.Name || "Unknown"}</td>
+              <td class="text-secondary">${item.ProductionYear || "—"}</td>
+              <td><span class="badge bg-secondary-lt">${item.Type || "—"}</span></td>
+            </tr>`).join("");
+          el.innerHTML = `
+            <div class="table-responsive">
+              <table class="table table-vcenter table-sm">
+                <thead><tr><th>Title</th><th>Year</th><th>Type</th></tr></thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>`;
+        }
+      } catch (e) {
+        el.innerHTML = `<span class="text-danger">Failed: ${e.message}</span>`;
+      }
+      done(btn);
+    }
+
+    // ── Downloads ──────────────────────────────────────────────────────────
+
+    async function loadSpeed(btn) {
+      busy(btn);
+      const el = document.getElementById("speed-display");
+      el.innerHTML = "";
+      try {
+        const d = await api("/api/downloads/speed");
+        if (d.error) {
+          el.innerHTML = `<span class="text-danger">${d.error}</span>`;
+        } else {
+          el.innerHTML = `
+            <div class="row g-3">
+              <div class="col-auto">
+                <div class="subheader">↓ Download</div>
+                <div class="h3 mb-0">${d.dl_speed_human}</div>
+              </div>
+              <div class="col-auto">
+                <div class="subheader">↑ Upload</div>
+                <div class="h3 mb-0">${d.up_speed_human}</div>
+              </div>
+            </div>`;
+        }
+      } catch (e) {
+        el.innerHTML = `<span class="text-danger">Failed: ${e.message}</span>`;
+      }
+      done(btn);
+    }
+
+    async function loadDownloads(btn) {
+      busy(btn);
+      const el = document.getElementById("torrent-list");
+      el.innerHTML = "";
+      try {
+        const data = await api("/api/downloads");
+        if (data.error) {
+          el.innerHTML = `<span class="text-danger">${data.error}</span>`;
+        } else if (!data.length) {
+          el.innerHTML = `<span class="text-secondary">No active torrents</span>`;
+        } else {
+          const rows = data.map(t => {
+            const pct = Math.round((t.progress || 0) * 100);
+            const dl = _humanSpeed(t.dlspeed || 0);
+            const stateColor = t.progress === 1 ? "success" : "primary";
+            return `
+              <tr>
+                <td style="max-width:300px">
+                  <div class="torrent-name">${t.name || "Unknown"}</div>
+                  <div class="progress mt-1" style="height:4px">
+                    <div class="progress-bar bg-${stateColor}" style="width:${pct}%"></div>
+                  </div>
+                </td>
+                <td class="text-secondary">${pct}%</td>
+                <td>↓ ${dl}</td>
+                <td><span class="badge bg-secondary-lt">${t.state || "—"}</span></td>
+              </tr>`;
+          }).join("");
+          el.innerHTML = `
+            <div class="table-responsive">
+              <table class="table table-vcenter table-sm">
+                <thead><tr><th>Name</th><th>Progress</th><th>Speed</th><th>State</th></tr></thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>`;
+        }
+      } catch (e) {
+        el.innerHTML = `<span class="text-danger">Failed: ${e.message}</span>`;
+      }
+      done(btn);
+    }
+
+    async function cleanupDownloads(btn) {
+      busy(btn);
+      alert("cleanup-result", "");
+      try {
+        const data = await api("/api/downloads/cleanup", "POST");
+        if (data.error) alert("cleanup-result", data.error, "danger");
+        else alert("cleanup-result", `Removed ${data.removed} completed torrent(s)`, "success");
+      } catch (e) {
+        alert("cleanup-result", "Cleanup failed: " + e.message, "danger");
+      }
+      done(btn);
+    }
+
+    // ── Search ─────────────────────────────────────────────────────────────
+
+    async function doSearch() {
+      const term = document.getElementById("search-input").value.trim();
+      if (!term) return;
+      const type = document.querySelector('input[name="search-type"]:checked').value;
+      const endpoint = type === "movies"
+        ? `/api/radarr/search?q=${encodeURIComponent(term)}`
+        : `/api/sonarr/search?q=${encodeURIComponent(term)}`;
+
+      const el = document.getElementById("search-results");
+      el.innerHTML = "";
+      alert("search-result", "Searching…");
+
+      try {
+        const data = await api(endpoint);
+        alert("search-result", "");
+        if (data.error) { alert("search-result", data.error, "danger"); return; }
+        if (!data.length) { alert("search-result", "No results found", "secondary"); return; }
+
+        const rows = data.slice(0, 15).map(item => {
+          const year = item.year ? ` <span class="text-secondary">(${item.year})</span>` : "";
+          const overview = item.overview
+            ? `<div class="search-result-overview mt-1">${item.overview}</div>` : "";
+          return `
+            <tr>
+              <td>
+                <div>${item.title || item.name || "Unknown"}${year}</div>
+                ${overview}
+              </td>
+            </tr>`;
+        }).join("");
+
+        el.innerHTML = `
+          <div class="table-responsive">
+            <table class="table table-vcenter table-sm">
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+      } catch (e) {
+        alert("search-result", "Search failed: " + e.message, "danger");
+      }
+    }
+
+    // ── Utils ──────────────────────────────────────────────────────────────
+
+    function _humanSpeed(bps) {
+      const units = ["B/s", "KB/s", "MB/s", "GB/s"];
+      let i = 0;
+      while (bps >= 1024 && i < units.length - 1) { bps /= 1024; i++; }
+      return `${bps.toFixed(1)} ${units[i]}`;
+    }
+  </script>
 </body>
 </html>
