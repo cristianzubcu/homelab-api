@@ -1,0 +1,9 @@
+services:
+  homelab-api:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file: .env
+    volumes:
+      - /opt/homelab-data/media:/data:ro
+    restart: unless-stopped
